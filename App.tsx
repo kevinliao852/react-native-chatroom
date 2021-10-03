@@ -3,30 +3,32 @@ import { StatusBar } from 'expo-status-bar';
 import React, { useEffect } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import firebase from './firebase/firebase';
+import { ChatList } from './Screens/ChatLIst';
+import { Home } from './Screens/Home';
 import { ChatRoom } from './Screens/ChatRoom';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Login } from './Screens/Login';
 // const result = dotenv.config();
 // console.log(result);
+const Stack = createNativeStackNavigator<{
+  ChatList: undefined;
+  ChatRoom: undefined;
+  Home: undefined;
+  Login: undefined;
+}>();
 
 export default function App() {
-  console.log();
-
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ height: 100, borderWidth: 1, borderColor: 'grey' }}>
-        <Text
-          style={{
-            textAlignVertical: 'center',
-            justifyContent: 'center',
-            textAlign: 'center',
-            height: '100%',
-          }}
-        >
-          ChatRoom
-        </Text>
-      </View>
-      <ChatRoom />
-      {/* <Text>Open up App.tsx to start working on your app!!!</Text>
-      <StatusBar style="auto" /> */}
+      <NavigationContainer>
+        <Stack.Navigator>
+          <Stack.Screen name="Home" component={Home} />
+          <Stack.Screen name="Login" component={Login} />
+          <Stack.Screen name="ChatList" component={ChatList} />
+          <Stack.Screen name="ChatRoom" component={ChatRoom} />
+        </Stack.Navigator>
+      </NavigationContainer>
     </View>
   );
 }

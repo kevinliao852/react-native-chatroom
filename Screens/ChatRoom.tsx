@@ -7,7 +7,22 @@ export const ChatRoom = () => {
   const [messages, setMessages] = useState<any>([]);
 
   useEffect(() => {
-    let subscriber: any;
+    const subscriber = firebase
+      .firestore()
+      .collection('ChatRoom')
+      .orderBy('createdAt', 'desc')
+      .onSnapshot((querySnapshot: any) => {
+        console.log('User size: ', querySnapshot.size);
+        const storedData: any = [];
+
+        querySnapshot.forEach((documentSnapshot: any) => {
+          storedData.push({
+            ...documentSnapshot.data(),
+            createdAt: documentSnapshot.data().createdAt.toDate(),
+          });
+        });
+        setMessages(storedData);
+      });
     (async () => {
       await firebase
         .auth()
@@ -32,23 +47,6 @@ export const ChatRoom = () => {
           });
           setMessages(storedData);
           console.log(storedData);
-        });
-
-      subscriber = firebase
-        .firestore()
-        .collection('ChatRoom')
-        .orderBy('createdAt', 'desc')
-        .onSnapshot((querySnapshot: any) => {
-          console.log('User size: ', querySnapshot.size);
-          const storedData: any = [];
-
-          querySnapshot.forEach((documentSnapshot: any) => {
-            storedData.push({
-              ...documentSnapshot.data(),
-              createdAt: documentSnapshot.data().createdAt.toDate(),
-            });
-          });
-          setMessages(storedData);
         });
     })();
 
