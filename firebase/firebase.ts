@@ -24,6 +24,8 @@ export const firebaseConfig = {
 export default (() => {
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
+  } else {
+    firebase.app();
   }
   return firebase;
 })();
