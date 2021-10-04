@@ -1,15 +1,17 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import firebase from '../firebase/firebase';
 import { GiftedChat, IMessage } from 'react-native-gifted-chat';
-import { TEST_ACCOUNT, TEST_PASSWORD } from '@env';
 
-export const ChatRoom = () => {
+export const ChatRoom = (props: any) => {
+  console.log(props.route.params.roomId);
   const [messages, setMessages] = useState<any>([]);
-
   useEffect(() => {
+    console.log(firebase.auth().currentUser);
     const subscriber = firebase
       .firestore()
-      .collection('ChatRoom')
+      .collection('ChatRoom2')
+      .doc('Ghkfy5xoq7cGHfysRg8j')
+      .collection('Room')
       .orderBy('createdAt', 'desc')
       .onSnapshot((querySnapshot: any) => {
         console.log('User size: ', querySnapshot.size);
@@ -25,13 +27,10 @@ export const ChatRoom = () => {
       });
     (async () => {
       await firebase
-        .auth()
-        .signInWithEmailAndPassword(TEST_ACCOUNT, TEST_PASSWORD)
-        .catch(console.log);
-
-      await firebase
         .firestore()
-        .collection('ChatRoom')
+        .collection('ChatRoom2')
+        .doc('Ghkfy5xoq7cGHfysRg8j')
+        .collection('Room')
         .orderBy('createdAt', 'desc')
         .get()
         .then((querySnapshot) => {
@@ -47,7 +46,8 @@ export const ChatRoom = () => {
           });
           setMessages(storedData);
           console.log(storedData);
-        });
+        })
+        .catch(console.log);
     })();
 
     // Stop listening for updates when no longer required
@@ -58,7 +58,9 @@ export const ChatRoom = () => {
     messages.forEach((data: any) => {
       firebase
         .firestore()
-        .collection('ChatRoom')
+        .collection('ChatRoom2')
+        .doc('Ghkfy5xoq7cGHfysRg8j')
+        .collection('Room')
         .add(data)
         .then(() => console.log('User added'));
     });

@@ -6,7 +6,7 @@ const RoomItem = () => {
   return (
     <TouchableOpacity
       onPress={() => {
-        navigation.navigate('ChatRoom');
+        navigation.navigate('ChatRoom', { roomId: 'Ghkfy5xoq7cGHfysRg8j' });
       }}
     >
       <View
