@@ -1,8 +1,6 @@
 // import dotenv from 'dotenv';
-import { StatusBar } from 'expo-status-bar';
-import React, { useEffect } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import firebase from './firebase/firebase';
+import React from 'react';
+import { TouchableOpacity, View } from 'react-native';
 import { ChatList } from './Screens/ChatLIst';
 import { Home } from './Screens/Home';
 import { ChatRoom } from './Screens/ChatRoom';
