@@ -7,12 +7,62 @@ import {
   GiftedChat,
   IMessage,
 } from 'react-native-gifted-chat';
+import { v4 as uuidv4 } from 'uuid';
 import { Audio } from 'expo-av';
-import { Alert, View } from 'react-native';
+import { Alert, Text, View } from 'react-native';
 
 export const ChatRoom = (props: any) => {
+  const roomId = props.route.params.roomId;
+  const collectionName = 'ChatRoom2';
+  const [messages, setMessages] = useState<any>([]);
+  const [recording, setRecording] = useState<any>();
+  const [sound, setSound] = useState<any>();
+  const [active, setActive] = useState<boolean>(false);
+
+  useEffect(() => {
+    const chatRoom = firebase
+      .firestore()
+      .collection(collectionName)
+      .doc(roomId)
+      .collection('Room')
+      .orderBy('createdAt', 'desc');
+
+    const HandleSnapshot = (querySnapshot: any) => {
+      console.log('Message size: ', querySnapshot.size);
+      const storedData: any = [];
+
+      querySnapshot.forEach((documentSnapshot: any) => {
+        storedData.push({
+          ...documentSnapshot.data(),
+          createdAt: documentSnapshot.data().createdAt.toDate(),
+        });
+      });
+      setMessages(storedData);
+    };
+
+    const subscriber = chatRoom.onSnapshot(HandleSnapshot);
+    (async () => {
+      await chatRoom.get().then(HandleSnapshot).catch(console.log);
+    })();
+
+    // Stop listening for updates when no longer required
+    return () => subscriber();
+  }, []);
+
+  useEffect(() => {
+    return sound
+      ? () => {
+          console.log('Unloading Sound');
+          sound.unloadAsync();
+        }
+      : undefined;
+  }, [sound]);
+
   const uploadAudio = async () => {
+    const filename = uuidv4();
     const uri = recording.getURI();
+    const uriParts = uri.split('.');
+    const fileType = uriParts[uriParts.length - 1];
     try {
       const blob: any = await new Promise((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -32,12 +82,10 @@ export const ChatRoom = (props: any) => {
         xhr.send(null);
       });
       if (blob != null) {
-        const uriParts = uri.split('.');
-        const fileType = uriParts[uriParts.length - 1];
-        firebase
+        await firebase
           .storage()
           .ref()
-          .child(`audio02.${fileType}`)
+          .child(`${filename}.${fileType}`)
           .put(blob, {
             contentType: `audio/${fileType}`,
           })
@@ -51,56 +99,9 @@ export const ChatRoom = (props: any) => {
     } catch (error) {
       console.log('error:', error);
     }
+    return `${filename}.${fileType}`;
   };
-  console.log(props.route.params.roomId);
 
-  const [messages, setMessages] = useState<any>([]);
-  const [recording, setRecording] = useState<any>();
-  const [sound, setSound] = useState<any>();
-  useEffect(() => {
-    return sound
-      ? () => {
-          console.log('Unloading Sound');
-          sound.unloadAsync();
-        }
-      : undefined;
-  }, [sound]);
-  console.log('recording', recording);
-  async function stopRecording() {
-    console.log('Stopping recording..');
-    setRecording(undefined);
-    await recording.stopAndUnloadAsync();
-    const uri = recording.getURI();
-
-    await uploadAudio();
-
-    const downloadUri = await firebase
-      .storage()
-      .ref('audio02.caf')
-      .getDownloadURL()
-      .catch((e) => console.log);
-
-    const message: IMessage = {
-      _id: 'xxxx123',
-      createdAt: new Date(),
-      user: {
-        _id: 1,
-      },
-      text: '',
-      audio: downloadUri,
-    };
-
-    await firebase
-      .firestore()
-      .collection('ChatRoom2')
-      .doc('Ghkfy5xoq7cGHfysRg8j')
-      .collection('Room')
-      .add(message)
-      .then(() => console.log('User added'))
-      .catch(console.log);
-
-    console.log('Recording stopped and stored at', uri);
-  }
   const startRecording = async () => {
     try {
       await Audio.requestPermissionsAsync();
@@ -118,7 +119,45 @@ export const ChatRoom = (props: any) => {
       console.log(err);
     }
   };
-  const renderActions = (props: any) => {
+
+  const stopRecording = async () => {
+    console.log('Stopping recording..');
+    setRecording(undefined);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+
+    const filename = await uploadAudio();
+    //console.log(filename);
+    const downloadURI = await firebase.storage().ref(filename).getDownloadURL();
+    //.catch((e) => console.log);
+
+    console.log(downloadURI);
+
+    const message: IMessage = {
+      _id: uuidv4(),
+      createdAt: new Date(),
+      user: {
+        _id: 1,
+      },
+      text: '',
+      audio: downloadURI,
+    };
+
+    //console.log(message);
+
+    await firebase
+      .firestore()
+      .collection(collectionName)
+      .doc(roomId)
+      .collection('Room')
+      .add(message)
+      .then(() => console.log('User added'))
+      .catch(console.log);
+
+    console.log('Recording stopped and stored at', uri);
+  };
+
+  const renderActions = () => {
     return (
       <Ionicons
         name={recording ? 'mic-off' : 'ios-mic'}
@@ -127,94 +166,52 @@ export const ChatRoom = (props: any) => {
       />
     );
   };
+
   const renderAudio = (props: any) => {
-    return !props.currentMessage.audio ? (
+    return !props.currentMessage?.audio ? (
       <View />
     ) : (
-      <Ionicons
-        name="ios-play"
-        size={35}
-        color={sound ? 'red' : 'green'}
-        style={{
-          left: 90,
-          position: 'relative',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 0 },
-          shadowOpacity: 0.5,
-          backgroundColor: 'transparent',
-        }}
-        onPress={async () => {
-          console.log(props.currentMessage.audio);
-          const downloadUri = await firebase
-            .storage()
-            .ref('audio02.caf')
-            .getDownloadURL();
-          const soundObject = new Audio.Sound();
-          await soundObject.loadAsync({ uri: downloadUri });
+      <View>
+        <Ionicons
+          name="ios-play"
+          size={35}
+          color={active ? 'green' : 'red'}
+          onPress={async () => {
+            console.log(props.currentMessage.audio);
+            const downloadURI = await firebase
+              .storage()
+              .refFromURL(props.currentMessage.audio)
+              .getDownloadURL();
+            const soundObject = new Audio.Sound();
+            const d = await soundObject
+              .loadAsync({ uri: downloadURI })
+              .catch(console.log);
 
-          setSound(soundObject);
+            setSound(soundObject);
 
-          console.log('Playing Sound');
-          await soundObject.playAsync().catch(console.log);
-        }}
-      />
+            soundObject.setOnPlaybackStatusUpdate((status: any) => {
+              console.log(123, status);
+              if (status.isPlaying === true) {
+                setActive(true);
+              } else {
+                setActive(false);
+              }
+            });
+
+            console.log('Playing Sound');
+            const s = await soundObject.playAsync();
+          }}
+        />
+      </View>
     );
   };
-  useEffect(() => {
-    console.log(firebase.auth().currentUser);
-    const subscriber = firebase
-      .firestore()
-      .collection('ChatRoom2')
-      .doc('Ghkfy5xoq7cGHfysRg8j')
-      .collection('Room')
-      .orderBy('createdAt', 'desc')
-      .onSnapshot((querySnapshot: any) => {
-        console.log('User size: ', querySnapshot.size);
-        const storedData: any = [];
-
-        querySnapshot.forEach((documentSnapshot: any) => {
-          storedData.push({
-            ...documentSnapshot.data(),
-            createdAt: documentSnapshot.data().createdAt.toDate(),
-          });
-        });
-        setMessages(storedData);
-      });
-    (async () => {
-      await firebase
-        .firestore()
-        .collection('ChatRoom2')
-        .doc('Ghkfy5xoq7cGHfysRg8j')
-        .collection('Room')
-        .orderBy('createdAt', 'desc')
-        .get()
-        .then((querySnapshot) => {
-          console.log('Total users: ', querySnapshot.size);
-
-          const storedData: any = [];
-
-          querySnapshot.forEach((documentSnapshot) => {
-            storedData.push({
-              ...documentSnapshot.data(),
-              createdAt: documentSnapshot.data().createdAt.toDate(),
-            });
-          });
-          setMessages(storedData);
-          //console.log(storedData);
-        })
-        .catch(console.log);
-    })();
-
-    // Stop listening for updates when no longer required
-    return () => subscriber();
-  }, []);
 
   const onSend = useCallback((messages: Array<IMessage> = []) => {
     messages.forEach((data: any) => {
       firebase
         .firestore()
-        .collection('ChatRoom2')
-        .doc('Ghkfy5xoq7cGHfysRg8j')
+        .collection(collectionName)
+        .doc(roomId)
         .collection('Room')
         .add(data)
         .then(() => console.log('User added'));
@@ -228,13 +225,15 @@ export const ChatRoom = (props: any) => {
   return (
     <GiftedChat
       showAvatarForEveryMessage
+      //@ts-ignore
       renderMessageAudio={renderAudio}
+      renderCustomView={() => renderAudio(props)}
       renderActions={renderActions}
+      renderUsernameOnMessage={true}
       renderBubble={(props) => {
         return (
           <View>
-            {renderAudio(props)}
-            <Bubble {...props} />
+            <Bubble {...props}></Bubble>
           </View>
         );
       }}
