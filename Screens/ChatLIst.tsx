@@ -2,7 +2,28 @@ import { useNavigation } from "@react-navigation/core";
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import firebase from "../firebase/firebase";
-const RoomItem = () => {
+const RoomItem = ({ room }: any) => {
+  const navigation = useNavigation<any>();
+  return (
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate("ChatRoom", { roomId: room.roomId });
+      }}
+    >
+      <View
+        style={{
+          padding: 20,
+          borderBottomWidth: 1,
+          marginHorizontal: 10,
+        }}
+      >
+        <Text>{room.roomName}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+};
+
+export const ChatList = () => {
   const [rooms, setRooms] = useState([]);
 
   useEffect(() => {
@@ -18,37 +39,12 @@ const RoomItem = () => {
       });
   }, []);
 
-  console.log(rooms);
-
-  const navigation = useNavigation<any>();
-  return (
-    <TouchableOpacity
-      onPress={() => {
-        navigation.navigate("ChatRoom", { roomId: "Ghkfy5xoq7cGHfysRg8j" });
-      }}
-    >
-      <View
-        style={{
-          padding: 20,
-          borderBottomWidth: 1,
-          marginHorizontal: 10,
-        }}
-      >
-        <Text>My ChatRoom</Text>
-      </View>
-    </TouchableOpacity>
-  );
-};
-
-export const ChatList = () => {
-  const navigation = useNavigation<any>();
-
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
       <ScrollView style={{ flex: 1, backgroundColor: "white" }}>
         <View>
-          {new Array(1).fill(null).map((data, index) => (
-            <RoomItem key={index} />
+          {rooms.map((room, index) => (
+            <RoomItem key={index} room={room} />
           ))}
         </View>
       </ScrollView>
