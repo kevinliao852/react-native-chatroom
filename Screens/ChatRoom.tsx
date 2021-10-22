@@ -1,34 +1,38 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import firebase from '../firebase/firebase';
+import React, { useState, useCallback, useEffect, useContext } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import firebase from "../firebase/firebase";
 import {
   Actions,
   Bubble,
   GiftedChat,
   IMessage,
-} from 'react-native-gifted-chat';
-import { v4 as uuidv4 } from 'uuid';
-import { Audio } from 'expo-av';
-import { Alert, Text, View } from 'react-native';
+} from "react-native-gifted-chat";
+import { v4 as uuidv4 } from "uuid";
+import { Audio } from "expo-av";
+import { Alert, Text, View } from "react-native";
+import { UserContext } from "../Context/UserContext";
 
 export const ChatRoom = (props: any) => {
   const roomId = props.route.params.roomId;
-  const collectionName = 'ChatRoom2';
+  const collectionName = "ChatRoom2";
   const [messages, setMessages] = useState<any>([]);
   const [recording, setRecording] = useState<any>();
   const [sound, setSound] = useState<any>();
   const [active, setActive] = useState<boolean>(false);
+  const { user } = useContext<any>(UserContext);
+
+  console.log(user);
 
   useEffect(() => {
     const chatRoom = firebase
       .firestore()
       .collection(collectionName)
       .doc(roomId)
-      .collection('Room')
-      .orderBy('createdAt', 'desc');
+      .collection("Room")
+      .orderBy("createdAt", "desc");
 
     const HandleSnapshot = (querySnapshot: any) => {
-      console.log('Message size: ', querySnapshot.size);
+      console.log("Message size: ", querySnapshot.size);
       const storedData: any = [];
 
       querySnapshot.forEach((documentSnapshot: any) => {
@@ -52,7 +56,7 @@ export const ChatRoom = (props: any) => {
   useEffect(() => {
     return sound
       ? () => {
-          console.log('Unloading Sound');
+          console.log("Unloading Sound");
           sound.unloadAsync();
         }
       : undefined;
@@ -61,7 +65,7 @@ export const ChatRoom = (props: any) => {
   const uploadAudio = async () => {
     const filename = uuidv4();
     const uri = recording.getURI();
-    const uriParts = uri.split('.');
+    const uriParts = uri.split(".");
     const fileType = uriParts[uriParts.length - 1];
     try {
       const blob: any = await new Promise((resolve, reject) => {
@@ -70,15 +74,15 @@ export const ChatRoom = (props: any) => {
           try {
             resolve(xhr.response);
           } catch (error) {
-            console.log('error:', error);
+            console.log("error:", error);
           }
         };
         xhr.onerror = (e) => {
           console.log(e);
-          reject(new TypeError('Network request failed'));
+          reject(new TypeError("Network request failed"));
         };
-        xhr.responseType = 'blob';
-        xhr.open('GET', uri, true);
+        xhr.responseType = "blob";
+        xhr.open("GET", uri, true);
         xhr.send(null);
       });
       if (blob != null) {
@@ -90,14 +94,14 @@ export const ChatRoom = (props: any) => {
             contentType: `audio/${fileType}`,
           })
           .then(() => {
-            console.log('Sent!');
+            console.log("Sent!");
           })
-          .catch((e) => console.log('error:', e));
+          .catch((e) => console.log("error:", e));
       } else {
-        console.log('error with blob');
+        console.log("error with blob");
       }
     } catch (error) {
-      console.log('error:', error);
+      console.log("error:", error);
     }
     return `${filename}.${fileType}`;
   };
@@ -109,19 +113,19 @@ export const ChatRoom = (props: any) => {
         allowsRecordingIOS: true,
         playsInSilentModeIOS: true,
       });
-      console.log('Starting recording..');
+      console.log("Starting recording..");
       const { recording } = await Audio.Recording.createAsync(
         Audio.RECORDING_OPTIONS_PRESET_HIGH_QUALITY
       );
       setRecording(recording);
-      console.log('Recording started');
+      console.log("Recording started");
     } catch (err: any) {
       console.log(err);
     }
   };
 
   const stopRecording = async () => {
-    console.log('Stopping recording..');
+    console.log("Stopping recording..");
     setRecording(undefined);
     await recording.stopAndUnloadAsync();
     const uri = recording.getURI();
@@ -137,9 +141,10 @@ export const ChatRoom = (props: any) => {
       _id: uuidv4(),
       createdAt: new Date(),
       user: {
-        _id: 1,
+        _id: user.uid,
+        name: user.email,
       },
-      text: '',
+      text: "",
       audio: downloadURI,
     };
 
@@ -149,18 +154,18 @@ export const ChatRoom = (props: any) => {
       .firestore()
       .collection(collectionName)
       .doc(roomId)
-      .collection('Room')
+      .collection("Room")
       .add(message)
-      .then(() => console.log('User added'))
+      .then(() => console.log("User added"))
       .catch(console.log);
 
-    console.log('Recording stopped and stored at', uri);
+    console.log("Recording stopped and stored at", uri);
   };
 
   const renderActions = () => {
     return (
       <Ionicons
-        name={recording ? 'mic-off' : 'ios-mic'}
+        name={recording ? "mic-off" : "ios-mic"}
         size={35}
         onPress={recording ? stopRecording : startRecording}
       />
@@ -175,7 +180,7 @@ export const ChatRoom = (props: any) => {
         <Ionicons
           name="ios-play"
           size={35}
-          color={active ? 'green' : 'red'}
+          color={active ? "green" : "red"}
           onPress={async () => {
             console.log(props.currentMessage.audio);
             const downloadURI = await firebase
@@ -198,7 +203,7 @@ export const ChatRoom = (props: any) => {
               }
             });
 
-            console.log('Playing Sound');
+            console.log("Playing Sound");
             const s = await soundObject.playAsync();
           }}
         />
@@ -212,9 +217,9 @@ export const ChatRoom = (props: any) => {
         .firestore()
         .collection(collectionName)
         .doc(roomId)
-        .collection('Room')
+        .collection("Room")
         .add(data)
-        .then(() => console.log('User added'));
+        .then(() => console.log("User added"));
     });
 
     setMessages((previousMessages: any) =>
@@ -240,7 +245,8 @@ export const ChatRoom = (props: any) => {
       messages={messages}
       onSend={(messages) => onSend(messages)}
       user={{
-        _id: 1,
+        _id: user.uid,
+        name: user.email,
       }}
     />
   );

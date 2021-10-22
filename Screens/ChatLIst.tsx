@@ -1,6 +1,7 @@
 import { useNavigation } from "@react-navigation/core";
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
+import { UserContext } from "../Context/UserContext";
 import firebase from "../firebase/firebase";
 const RoomItem = ({ room }: any) => {
   const navigation = useNavigation<any>();
@@ -25,19 +26,26 @@ const RoomItem = ({ room }: any) => {
 
 export const ChatList = () => {
   const [rooms, setRooms] = useState([]);
+  const { user } = useContext<any>(UserContext);
 
   useEffect(() => {
+    if (!user) {
+      return;
+    }
+
+    console.log(user.uid);
+
     firebase
       .firestore()
       .collection("User_ChatRoom")
-      .where("userId", "==", "1")
+      .where("userId", "==", user.uid)
       .get()
       .then((querySnapshot) => {
         querySnapshot.forEach((documentSnapshot) =>
           setRooms(documentSnapshot.data().rooms)
         );
       });
-  }, []);
+  }, [user]);
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
