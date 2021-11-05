@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { Login } from "./Screens/Login";
 import { Setting } from "./Screens/Setting";
 import { UserProvider } from "./Context/UserContext";
+import { FriendList } from "./Screens/FriendList";
 // const result = dotenv.config();
 // console.log(result);
 const Stack = createNativeStackNavigator<{
@@ -18,6 +19,7 @@ const Stack = createNativeStackNavigator<{
   Home: undefined;
   Login: undefined;
   Setting: undefined;
+  FriendList: undefined;
 }>();
 
 export default function App() {
@@ -30,9 +32,15 @@ export default function App() {
             <Stack.Screen name="Login" component={Login} />
             <Stack.Screen name="Setting" component={Setting} />
             <Stack.Screen
+              name="FriendList"
+              component={FriendList}
+              options={{ headerLeft: () => <View /> }}
+            />
+            <Stack.Screen
               name="ChatList"
               component={ChatList}
               options={{
+                headerLeft: () => <View />,
                 headerRight: (props: any) => {
                   const navigation = useNavigation<any>();
                   return (

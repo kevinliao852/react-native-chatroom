@@ -27,6 +27,7 @@ const RoomItem = ({ room }: any) => {
 export const ChatList = () => {
   const [rooms, setRooms] = useState([]);
   const { user } = useContext<any>(UserContext);
+  const navigation = useNavigation<any>();
 
   useEffect(() => {
     if (!user) {
@@ -70,10 +71,18 @@ export const ChatList = () => {
       >
         <TouchableOpacity style={{ flex: 1 }}>
           <View style={{}}>
-            <Text style={{ textAlign: "center" }}>ChatList</Text>
+            <Text
+              style={{ textAlign: "center" }}
+              onPress={() => navigation.navigate("ChatList")}
+            >
+              ChatList
+            </Text>
           </View>
         </TouchableOpacity>
-        <TouchableOpacity style={{ flex: 1 }}>
+        <TouchableOpacity
+          style={{ flex: 1 }}
+          onPress={() => navigation.navigate("FriendList")}
+        >
           <View style={{}}>
             <Text style={{ textAlign: "center" }}>FriendList</Text>
           </View>
