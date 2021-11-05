@@ -12,6 +12,7 @@ import { Setting } from "./Screens/Setting";
 import { UserProvider } from "./Context/UserContext";
 import { FriendList } from "./Screens/FriendList";
 import { FriendHeaderLeft } from "./Screens/components/FriendHeaderLeft";
+import { SettingHeaderRight } from "./Screens/components/SettingHeaderRight";
 // const result = dotenv.config();
 // console.log(result);
 const Stack = createNativeStackNavigator<{
@@ -45,22 +46,7 @@ export default function App() {
               component={ChatList}
               options={{
                 headerLeft: () => <View />,
-                headerRight: (props: any) => {
-                  const navigation = useNavigation<any>();
-                  return (
-                    <TouchableOpacity
-                      onPress={() => navigation.navigate("Setting")}
-                    >
-                      <View>
-                        <Ionicons
-                          name="settings"
-                          size={20}
-                          style={{ marginRight: 10 }}
-                        />
-                      </View>
-                    </TouchableOpacity>
-                  );
-                },
+                headerRight: () => <SettingHeaderRight />,
               }}
             />
             <Stack.Screen name="ChatRoom" component={ChatRoom} />
