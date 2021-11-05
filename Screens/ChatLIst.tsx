@@ -3,6 +3,7 @@ import React, { useContext, useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { UserContext } from "../Context/UserContext";
 import firebase from "../firebase/firebase";
+import { Nav } from "./components/Nav";
 const RoomItem = ({ room }: any) => {
   const navigation = useNavigation<any>();
   return (
@@ -27,7 +28,6 @@ const RoomItem = ({ room }: any) => {
 export const ChatList = () => {
   const [rooms, setRooms] = useState([]);
   const { user } = useContext<any>(UserContext);
-  const navigation = useNavigation<any>();
 
   useEffect(() => {
     if (!user) {
@@ -57,37 +57,7 @@ export const ChatList = () => {
           ))}
         </View>
       </ScrollView>
-      <View
-        style={{
-          backgroundColor: "white",
-          width: "100%",
-          flexDirection: "row",
-          paddingHorizontal: 30,
-          borderTopWidth: 1,
-          padding: 10,
-          borderBottomWidth: 1,
-          marginBottom: 50,
-        }}
-      >
-        <TouchableOpacity style={{ flex: 1 }}>
-          <View style={{}}>
-            <Text
-              style={{ textAlign: "center" }}
-              onPress={() => navigation.navigate("ChatList")}
-            >
-              ChatList
-            </Text>
-          </View>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={{ flex: 1 }}
-          onPress={() => navigation.navigate("FriendList")}
-        >
-          <View style={{}}>
-            <Text style={{ textAlign: "center" }}>FriendList</Text>
-          </View>
-        </TouchableOpacity>
-      </View>
+      <Nav />
     </View>
   );
 };
