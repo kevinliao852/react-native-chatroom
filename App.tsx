@@ -11,6 +11,7 @@ import { Login } from "./Screens/Login";
 import { Setting } from "./Screens/Setting";
 import { UserProvider } from "./Context/UserContext";
 import { FriendList } from "./Screens/FriendList";
+import { FriendHeaderLeft } from "./Screens/components/FriendHeaderLeft";
 // const result = dotenv.config();
 // console.log(result);
 const Stack = createNativeStackNavigator<{
@@ -34,7 +35,10 @@ export default function App() {
             <Stack.Screen
               name="FriendList"
               component={FriendList}
-              options={{ headerLeft: () => <View /> }}
+              options={{
+                headerLeft: () => <View />,
+                headerRight: () => <FriendHeaderLeft />,
+              }}
             />
             <Stack.Screen
               name="ChatList"
