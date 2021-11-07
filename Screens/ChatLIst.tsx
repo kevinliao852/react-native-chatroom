@@ -36,6 +36,16 @@ export const ChatList = () => {
 
     console.log(user.uid);
 
+    const subscriber = firebase
+      .firestore()
+      .collection("User_ChatRoom")
+      .where("userId", "==", user.uid)
+      .onSnapshot((querySnapshot) => {
+        querySnapshot.forEach((documentSnapshot) =>
+          setRooms(documentSnapshot.data().rooms)
+        );
+      });
+
     firebase
       .firestore()
       .collection("User_ChatRoom")
@@ -46,6 +56,8 @@ export const ChatList = () => {
           setRooms(documentSnapshot.data().rooms)
         );
       });
+
+    return () => subscriber();
   }, [user]);
 
   return (
