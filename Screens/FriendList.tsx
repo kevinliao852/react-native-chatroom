@@ -71,9 +71,7 @@ const getChatListId = (chatList: any) => {
   return id;
 };
 
-const renderFriends = (friend: any, index: any, user: any) => {
-  const navigation = useNavigation<any>();
-
+const renderFriends = ({ friend, index, user, navigation }: any) => {
   return (
     <TouchableOpacity
       key={index}
@@ -125,8 +123,10 @@ const renderFriends = (friend: any, index: any, user: any) => {
 };
 
 export const FriendList = () => {
-  const { user } = useContext<any>(UserContext);
+  const userContext = useContext<any>(UserContext);
+  const navigation = useNavigation<any>();
   const [friends, setFriends] = useState<any>();
+  const { user } = userContext;
 
   //console.log("friends", friends);
 
@@ -169,7 +169,7 @@ export const FriendList = () => {
           friends
             .filter((friend: any) => friend.id !== user.uid)
             .map((friend: any, index: any) =>
-              renderFriends(friend, index, user)
+              renderFriends({ friend, index, user, navigation })
             )}
       </ScrollView>
       <Nav />

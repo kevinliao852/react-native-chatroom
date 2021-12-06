@@ -18,7 +18,7 @@ export const ChatRoom = (props: any) => {
   const [messages, setMessages] = useState<any>([]);
   const [recording, setRecording] = useState<any>();
   const [sound, setSound] = useState<any>();
-  const [active, setActive] = useState<boolean>(false);
+
   const { user } = useContext<any>(UserContext);
 
   console.log(user);
@@ -172,36 +172,47 @@ export const ChatRoom = (props: any) => {
     );
   };
 
-  const renderAudio = (props: any) => {
+  const RenderAudio = (props: any) => {
+    const [active, setActive] = useState<boolean>(false);
+
+    // console.log(props.currentMessage, active);
+
     return !props.currentMessage?.audio ? (
       <View />
     ) : (
-      <View>
+      <View style={{ alignItems: "center" }}>
         <Ionicons
           name="ios-play"
           size={35}
           color={active ? "green" : "red"}
           onPress={async () => {
+            setActive(true);
             console.log(props.currentMessage.audio);
             const downloadURI = await firebase
               .storage()
               .refFromURL(props.currentMessage.audio)
               .getDownloadURL();
             const soundObject = new Audio.Sound();
-            const d = await soundObject
+
+            await soundObject
               .loadAsync({ uri: downloadURI })
               .catch(console.log);
 
-            setSound(soundObject);
+            let hasIgnoredFirstChange = false;
 
             soundObject.setOnPlaybackStatusUpdate((status: any) => {
-              console.log(123, status);
-              if (status.isPlaying === true) {
+              if (status.shouldPlay === true) {
                 setActive(true);
               } else {
+                if (!hasIgnoredFirstChange) {
+                  hasIgnoredFirstChange = true;
+                  return;
+                }
                 setActive(false);
               }
             });
+
+            console.log(soundObject);
 
             console.log("Playing Sound");
             const s = await soundObject.playAsync();
@@ -231,8 +242,12 @@ export const ChatRoom = (props: any) => {
     <GiftedChat
       showAvatarForEveryMessage
       //@ts-ignore
-      renderMessageAudio={renderAudio}
-      renderCustomView={() => renderAudio(props)}
+      renderMessageAudio={(props) => (
+        <View style={{ padding: 10 }}>
+          <Text style={{ color: "white" }}>Voice Message</Text>
+        </View>
+      )}
+      renderCustomView={(props: any) => <RenderAudio {...props} />}
       renderActions={renderActions}
       renderUsernameOnMessage={true}
       renderBubble={(props) => {
