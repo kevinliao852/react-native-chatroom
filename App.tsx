@@ -1,7 +1,7 @@
 // import dotenv from 'dotenv';
 import React from "react";
 import { TouchableOpacity, View } from "react-native";
-import { ChatList } from "./Screens/ChatLIst";
+import { ChatList } from "./Screens/ChatList";
 import { Home } from "./Screens/Home";
 import { ChatRoom } from "./Screens/ChatRoom";
 import { NavigationContainer, useNavigation } from "@react-navigation/native";
