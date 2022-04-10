@@ -5,6 +5,7 @@ import { ScrollView, TouchableOpacity, View } from "react-native";
 import { Text, Image } from "react-native-elements";
 import { UserContext } from "../Context/UserContext";
 import { Nav } from "./components/Nav";
+import { useFriends } from "./hooks/useFriends";
 
 const chatRoom = "ChatRoom2";
 const roomsCollectionName = "Rooms";
@@ -125,42 +126,8 @@ const renderFriends = ({ friend, index, user, navigation }: any) => {
 export const FriendList = () => {
   const userContext = useContext<any>(UserContext);
   const navigation = useNavigation<any>();
-  const [friends, setFriends] = useState<any>();
   const { user } = userContext;
-
-  //console.log("friends", friends);
-
-  useEffect(() => {
-    if (!user) {
-      return;
-    }
-
-    firebase
-      .firestore()
-      .collection("Friendship")
-      .get()
-      .then(async (querySnapshot) => {
-        let data: any = [];
-        querySnapshot.forEach((documentSnapshot) => {
-          data = documentSnapshot
-            .data()
-            .friendIds.map((item: any) => item.get());
-        });
-        //console.log("data", data);
-        return Promise.all(data);
-      })
-      .then((res) =>
-        res.map((item: any) => {
-          return { ...item.data(), id: item.id };
-        })
-      )
-      .then((res) => {
-        //console.log(res);
-        return res;
-      })
-      .then(setFriends)
-      .catch(console.log);
-  }, [user]);
+  const { friends } = useFriends(user);
 
   return (
     <View style={{ flex: 1, backgroundColor: "black" }}>
